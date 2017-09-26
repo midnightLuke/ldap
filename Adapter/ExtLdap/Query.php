@@ -54,39 +54,37 @@ class Query extends AbstractQuery
      */
     public function execute()
     {
-        if (null === $this->search) {
-            // If the connection is not bound, throw an exception. Users should use an explicit bind call first.
-            if (!$this->connection->isBound()) {
-                throw new NotBoundException('Query execution is not possible without binding the connection first.');
-            }
-
-            $con = $this->connection->getResource();
-
-            switch ($this->options['scope']) {
-                case static::SCOPE_BASE:
-                    $func = 'ldap_read';
-                    break;
-                case static::SCOPE_ONE:
-                    $func = 'ldap_list';
-                    break;
-                case static::SCOPE_SUB:
-                    $func = 'ldap_search';
-                    break;
-                default:
-                    throw new LdapException(sprintf('Could not search in scope %s', $this->options['scopen']));
-            }
-
-            $this->search = @$func(
-                $con,
-                $this->dn,
-                $this->query,
-                $this->options['filter'],
-                $this->options['attrsOnly'],
-                $this->options['maxItems'],
-                $this->options['timeout'],
-                $this->options['deref']
-            );
+        // If the connection is not bound, throw an exception. Users should use an explicit bind call first.
+        if (!$this->connection->isBound()) {
+            throw new NotBoundException('Query execution is not possible without binding the connection first.');
         }
+
+        $con = $this->connection->getResource();
+
+        switch ($this->options['scope']) {
+            case static::SCOPE_BASE:
+                $func = 'ldap_read';
+                break;
+            case static::SCOPE_ONE:
+                $func = 'ldap_list';
+                break;
+            case static::SCOPE_SUB:
+                $func = 'ldap_search';
+                break;
+            default:
+                throw new LdapException(sprintf('Could not search in scope %s', $this->options['scopen']));
+        }
+
+        $this->search = @$func(
+            $con,
+            $this->dn,
+            $this->query,
+            $this->options['filter'],
+            $this->options['attrsOnly'],
+            $this->options['maxItems'],
+            $this->options['timeout'],
+            $this->options['deref']
+        );
 
         if (false === $this->search) {
             throw new LdapException(sprintf('Could not complete search with dn "%s", query "%s" and filters "%s"', $this->dn, $this->query, implode(',', $this->options['filter'])));
